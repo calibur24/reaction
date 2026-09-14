@@ -1,16 +1,38 @@
-# React + Vite
+# 🧠 NeuralTiming — Cognitive Suite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> A sub-millisecond reaction time and decision-making measurement platform built with React, Tailwind CSS, and Supabase.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🌐 Live Production Link
 
-## React Compiler
+* **Vercel Web App:** [https://neuraltiming.vercel.app/](https://neuraltiming.vercel.app/)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## ⚡ Project Overview
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+NeuralTiming is a high-precision cognitive assessment tool featuring:
+* **Dual Benchmarks:** Reaction Time (RT Median) and Decision Making Time (DMT Mean) challenges.
+* **User Dashboard:** Real-time session history graphs and test launchers.
+* **Admin Portal:** Decrypted demographic views (`pgcrypto`), user metrics, and one-click **CSV / Excel** exports.
+* **Mobile Ready:** Fully responsive touch-friendly UI.
+
+---
+
+## 🚀 How to Clone & Run Locally
+
+### 1. Clone the Repository
+```bash
+git clone [https://github.com/calibur24/neuraltiming.git](https://github.com/calibur24/neuraltiming.git)
+cd neuraltiming
+npm install
+
+Create a .env file in the root folder and add your Supabase credentials:
+VITE_SUPABASE_URL=[https://your-project-id.supabase.co](https://your-project-id.supabase.co)
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+Run the app by using
+npm run dev
+
+Open http://localhost:5173 in your browser.
