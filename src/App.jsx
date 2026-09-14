@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Analytics } from "@vercel/analytics/react";
 import UserDashboard from './pages/UserDashboard';
 import RTChallenge from './pages/RTChallenge';
 import DMTChallenge from './pages/DMTChallenge';
