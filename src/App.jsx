@@ -20,6 +20,7 @@ export default function App() {
           {/* Fallback to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <Analytics />
       </div>
     </Router>
   );
