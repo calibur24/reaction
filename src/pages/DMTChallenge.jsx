@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { calculateMean } from '../utils/timing';
@@ -16,21 +16,15 @@ const PAIRS = [
   ['Sneakers', 'Sandals'], ['Sunrise', 'Sunset'],
 ];
 
-// Generates 5 randomized trials per session with shuffled prompt targets and button positions
+// Pick 5 random pairs per session and shuffle button order for each pair
 function generateSessionTrials() {
   const shuffledBank = [...PAIRS].sort(() => Math.random() - 0.5);
   const selectedPairs = shuffledBank.slice(0, 5);
 
   return selectedPairs.map(([optA, optB]) => {
-    // Pick one option at random as the required target
-    const target = Math.random() < 0.5 ? optA : optB;
-    // Shuffle button positions (Left vs Right)
+    // Randomize button positions (Left vs Right)
     const options = Math.random() < 0.5 ? [optA, optB] : [optB, optA];
-
-    return {
-      target,
-      options,
-    };
+    return { options };
   });
 }
 
@@ -40,6 +34,7 @@ export default function DMTChallenge() {
   const [trials, setTrials] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [latencyResults, setLatencyResults] = useState([]);
+  const [userChoices, setUserChoices] = useState([]);
   const [meanScore, setMeanScore] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -51,33 +46,32 @@ export default function DMTChallenge() {
     setTrials(newSession);
     setCurrentStep(0);
     setLatencyResults([]);
+    setUserChoices([]);
     setGameState('testing');
     startTimeRef.current = performance.now();
   };
 
-  // Handle user button selection
+  // Handle free user selection
   const handleChoice = async (selectedOption) => {
-    const currentTrial = trials[currentStep];
+    const endTime = performance.now();
+    const trialLatency = Math.round((endTime - startTimeRef.current) * 100) / 100;
+    
+    const updatedResults = [...latencyResults, trialLatency];
+    const updatedChoices = [...userChoices, selectedOption];
 
-    // Check if selection matches target stimulus
-    if (selectedOption === currentTrial.target) {
-      const endTime = performance.now();
-      const trialLatency = Math.round((endTime - startTimeRef.current) * 100) / 100;
-      const updatedResults = [...latencyResults, trialLatency];
+    setLatencyResults(updatedResults);
+    setUserChoices(updatedChoices);
 
-      setLatencyResults(updatedResults);
-
-      if (currentStep + 1 < trials.length) {
-        // Move to next trial step
-        setCurrentStep((prev) => prev + 1);
-        startTimeRef.current = performance.now();
-      } else {
-        // Test complete: calculate DMT Mean metric
-        const computedMean = calculateMean(updatedResults);
-        setMeanScore(computedMean);
-        setGameState('completed');
-        await saveSessionToSupabase(computedMean, updatedResults);
-      }
+    if (currentStep + 1 < trials.length) {
+      // Move to next trial step immediately
+      setCurrentStep((prev) => prev + 1);
+      startTimeRef.current = performance.now();
+    } else {
+      // Test complete: calculate DMT Mean metric
+      const computedMean = calculateMean(updatedResults);
+      setMeanScore(computedMean);
+      setGameState('completed');
+      await saveSessionToSupabase(computedMean, updatedResults);
     }
   };
 
@@ -119,7 +113,7 @@ export default function DMTChallenge() {
           <div className="space-y-2">
             <h1 className="text-3xl font-black text-white tracking-tight">Decision Making Test</h1>
             <p className="text-zinc-400 text-sm">
-              Select the matching target option as quickly as possible across 5 dynamic trials.
+              Choose your preference as fast as possible across 5 decision trials.
             </p>
           </div>
 
@@ -145,30 +139,30 @@ export default function DMTChallenge() {
         <div className="w-full max-w-2xl space-y-8">
           {/* Progress Header */}
           <div className="flex justify-between items-center text-xs font-mono text-zinc-400">
-            <span>TRIAL {currentStep + 1} OF {trials.length}</span>
+            <span>DECISION {currentStep + 1} OF {trials.length}</span>
             <span className="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
               DMT Telemetry Active
             </span>
           </div>
 
-          {/* Main Stimulus Card */}
+          {/* Prompt Header */}
           <div className="dark-glass-card p-10 rounded-3xl border border-zinc-800 text-center space-y-8">
             <div className="space-y-2">
               <span className="text-xs uppercase tracking-widest text-zinc-500 font-bold block">
-                SELECT TARGET
+                MAKE YOUR CHOICE
               </span>
-              <h2 className="text-4xl font-black text-white font-mono">
-                "{trials[currentStep].target}"
+              <h2 className="text-3xl font-black text-white tracking-tight">
+                Which do you prefer?
               </h2>
             </div>
 
-            {/* Dynamic Decision Choice Buttons */}
+            {/* Free Choice Buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
               {trials[currentStep].options.map((option, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleChoice(option)}
-                  className="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-purple-500 hover:bg-purple-950/20 text-lg font-bold text-white transition-all transform active:scale-95 cursor-pointer flex items-center justify-center"
+                  className="p-8 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-purple-500 hover:bg-purple-950/30 text-xl font-bold text-white transition-all transform active:scale-95 cursor-pointer flex items-center justify-center shadow-lg"
                 >
                   {option}
                 </button>
@@ -199,10 +193,10 @@ export default function DMTChallenge() {
             )}
           </div>
 
-          {/* Trial Breakdown */}
+          {/* Trial Latency Breakdown */}
           <div className="space-y-2 text-left">
             <span className="text-[11px] uppercase font-bold text-zinc-500 tracking-wider">
-              Trial Latencies (ms):
+              Decision Latencies (ms):
             </span>
             <div className="flex flex-wrap gap-2">
               {latencyResults.map((lat, idx) => (
@@ -210,7 +204,7 @@ export default function DMTChallenge() {
                   key={idx}
                   className="px-3 py-1 rounded-xl bg-zinc-900 border border-zinc-800 font-mono text-xs text-zinc-300"
                 >
-                  T{idx + 1}: {lat}ms
+                  {userChoices[idx]}: {lat}ms
                 </span>
               ))}
             </div>
